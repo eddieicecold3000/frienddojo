@@ -88,7 +88,7 @@ Controls: touch/click, Tab and Enter/Space. Reduced-motion preference gives inst
 
 Original Rare Friends character pixels are loaded through the SDK canonical sprite reader. SDK source is Apache-2.0; retain SDK NOTICE.md artwork permissions. UI code is original; no HoboWars artwork is copied.
 
-Preview: https://rare-friend-dojo.eddieicecold3000.chatgpt.site (public pre-launch demo).
+Preview: https://frienddojo.vercel.app (public demo).
 Submission remains pending owner approval, builder contact, public source/preview and real-wallet testing. No vibeathon PR has been opened.
 
 
