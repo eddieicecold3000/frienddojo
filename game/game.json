@@ -1,0 +1,6 @@
+{
+  "name": "Friend Dojo",
+  "consumable": "Unused SDK reference ticket",
+  "price": "1000000000000000000",
+  "outcomes": [{ "name": "Unused SDK reference reward", "chanceBps": 10000, "reward": "1000000000000000000" }]
+}
