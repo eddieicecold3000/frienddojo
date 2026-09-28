@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { hp, initialState, train, regenerate, support, interval, MINUTE, DAY, trainingBonus, xpMultiplier, trainingQuote, battle, enterBattle, OPPONENTS } from './engine.ts';
+import { hp, initialState, train, regenerate, support, interval, MINUTE, DAY, BURN_RF, MONTHLY_SUPPORTER_RF_ESTIMATE, STAKE_RF, trainingBonus, xpMultiplier, trainingQuote, battle, enterBattle, OPPONENTS } from './engine.ts';
 
 test('health grows only with levels and battle health stays fixed across a level-up',()=>{
   assert.equal(hp(0),90); assert.equal(hp(99),90);
@@ -37,22 +37,33 @@ test('stake debits once, preserves fractional progress, and unstake returns once
   s=regenerate(s,7.5*MINUTE);
   assert.equal(s.charge,.5);
   s=support(s,'stake',7.5*MINUTE);
-  assert.equal(s.demoRF,900);assert.equal(interval(s),10*MINUTE);
-  assert.equal(support(s,'stake',7.5*MINUTE).demoRF,900);
+  assert.equal(s.demoRF,initialState(0).demoRF-STAKE_RF);assert.equal(interval(s),10*MINUTE);
+  assert.equal(support(s,'stake',7.5*MINUTE).demoRF,initialState(0).demoRF-STAKE_RF);
   s=regenerate(s,12.5*MINUTE);assert.equal(s.t,55);
-  s=support(s,'unstake',12.5*MINUTE);assert.equal(s.demoRF,1000);
-  assert.equal(support(s,'unstake',12.5*MINUTE).demoRF,1000);
+  s=support(s,'unstake',12.5*MINUTE);assert.equal(s.demoRF,initialState(0).demoRF);
+  assert.equal(support(s,'unstake',12.5*MINUTE).demoRF,initialState(0).demoRF);
   assert.equal(interval(s),15*MINUTE);
 });
 test('burn pass expires using old and new rates, with no refund',()=>{
   let s=support(initialState(0),'burn',0);
-  assert.equal(s.demoRF,975);
+  assert.equal(s.demoRF,initialState(0).demoRF-BURN_RF);
   s=regenerate(s,DAY-5*MINUTE);
   s=train(s,'power',5,DAY-5*MINUTE);
   s=regenerate(s,DAY+7.5*MINUTE);
-  assert.equal(s.supporter,'standard');assert.equal(s.demoRF,975);assert.equal(s.t,55);
+  assert.equal(s.supporter,'standard');assert.equal(s.demoRF,initialState(0).demoRF-BURN_RF);assert.equal(s.t,55);
   assert.equal(s.charge,0);
-  assert.equal(support({...s,demoRF:24},'burn',DAY+7.5*MINUTE).supporter,'standard');
+  assert.equal(support({...s,demoRF:BURN_RF-1},'burn',DAY+7.5*MINUTE).supporter,'standard');
+});
+test('daily and monthly passes consume the reference RF estimate for their stated duration',()=>{
+  const start=initialState(0);
+  const daily=support(start,'burn',0);
+  assert.equal(daily.demoRF,start.demoRF-BURN_RF);
+  assert.equal(daily.supporterUntil,DAY);
+  const monthly=support(start,'monthly',0);
+  assert.equal(monthly.demoRF,start.demoRF-MONTHLY_SUPPORTER_RF_ESTIMATE);
+  assert.equal(monthly.supporterUntil,30*DAY);
+  assert.equal(regenerate(monthly,30*DAY).supporter,'standard');
+  assert.equal(regenerate(monthly,30*DAY).demoRF,monthly.demoRF);
 });
 test('intelligence gives plateau bonuses with slowdown above 1500',()=>{
   assert.equal(trainingBonus(99),0);assert.equal(trainingBonus(100),.015);

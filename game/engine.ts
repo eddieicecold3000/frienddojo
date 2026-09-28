@@ -2,15 +2,19 @@ export const STATS = ['intelligence', 'strength', 'speed', 'power'] as const;
 export type Stat = typeof STATS[number];
 export type Stats = Record<Stat, number>;
 export const MINUTE = 60_000, DAY = 24 * 60 * MINUTE;
-export const STAKE_RF = 100, BURN_RF = 25, FIGHT_T = 10;
+// Mock RF estimates only. The live equivalent should be quoted dynamically from USD targets.
+export const MONTHLY_SUPPORTER_USD = 5, DAILY_SUPPORTER_USD = 1;
+export const MONTHLY_SUPPORTER_RF_ESTIMATE = 3100, DAILY_SUPPORTER_RF_ESTIMATE = 620;
+export const CHARACTER_DEPOSIT_RF_PROPOSAL = 1000;
+export const STAKE_RF = CHARACTER_DEPOSIT_RF_PROPOSAL, BURN_RF = DAILY_SUPPORTER_RF_ESTIMATE, FIGHT_T = 10;
 export type TrainingState = {
   t: number; stats: Stats; lastUpdate: number; charge: number;
-  supporter: 'standard' | 'stake' | 'burn'; supporterUntil: number;
+  supporter: 'standard' | 'stake' | 'burn' | 'monthly'; supporterUntil: number;
   demoRF: number; xp: number;
 };
 export const initialState = (now = Date.now()): TrainingState => ({ t: 100,
   stats: { intelligence: 10, strength: 10, speed: 10, power: 10 },
-  lastUpdate: now, charge: 0, supporter: 'standard', supporterUntil: 0, demoRF: 1000, xp: 0 });
+  lastUpdate: now, charge: 0, supporter: 'standard', supporterUntil: 0, demoRF: 10_000, xp: 0 });
 export const interval = (state: TrainingState) => (state.supporter === 'standard' ? 15 : 10) * MINUTE;
 function accrue(state: TrainingState, now: number): TrainingState {
   if (now <= state.lastUpdate) return state;
@@ -23,19 +27,20 @@ function accrue(state: TrainingState, now: number): TrainingState {
 /** Split elapsed time at burn-pass expiry so each segment uses the correct rate. */
 export function regenerate(state: TrainingState, now = Date.now()): TrainingState {
   if (now < state.lastUpdate) return state;
-  if (state.supporter === 'burn' && now >= state.supporterUntil) {
+  if ((state.supporter === 'burn' || state.supporter === 'monthly') && now >= state.supporterUntil) {
     state = accrue(state, Math.max(state.lastUpdate, state.supporterUntil));
     state = { ...state, supporter: 'standard', supporterUntil: 0 };
   }
   return accrue(state, now);
 }
-export function support(state: TrainingState, mode: 'stake' | 'burn' | 'unstake', now = Date.now()): TrainingState {
+export function support(state: TrainingState, mode: 'stake' | 'burn' | 'monthly' | 'unstake', now = Date.now()): TrainingState {
   state = regenerate(state, now);
   if (mode === 'unstake') return state.supporter === 'stake' ? { ...state, supporter: 'standard', demoRF: state.demoRF + STAKE_RF } : state;
   if (state.supporter !== 'standard') return state;
-  const cost = mode === 'stake' ? STAKE_RF : BURN_RF;
+  const cost = mode === 'stake' ? STAKE_RF : mode === 'burn' ? BURN_RF : MONTHLY_SUPPORTER_RF_ESTIMATE;
   if (state.demoRF < cost) return state;
-  return { ...state, supporter: mode, demoRF: state.demoRF - cost, supporterUntil: mode === 'burn' ? now + DAY : 0 };
+  const duration = mode === 'monthly' ? 30 * DAY : mode === 'burn' ? DAY : 0;
+  return { ...state, supporter: mode, demoRF: state.demoRF - cost, supporterUntil: duration ? now + duration : 0 };
 }
 export const trainingBonus = (intel: number) => 15 * (Math.floor(Math.min(intel, 1500) / 100) + Math.floor(Math.max(0, intel - 1500) / 200)) / 1000;
 export const xpMultiplier = (intel: number) => (10 + Math.floor(Math.min(intel, 1500) / 50) + Math.floor(Math.max(0, intel - 1500) / 100)) / 10;
@@ -63,15 +68,20 @@ export function train(state: TrainingState, stat: Stat, reps: number, now = Date
   return { ...state, t: state.t - cost, stats: { ...state.stats, [stat]: Math.round((state.stats[stat] + gain) * 1000) / 1000 } };
 }
 export const OPPONENTS = [
-  { name: 'The Rookie', tag: 'Balanced', note: 'A fair first test. No tricks, just fundamentals.', stats: { intelligence: 8, strength: 8, speed: 8, power: 8 } },
-  { name: 'Quickstep', tag: 'Speed specialist', note: 'More attacks. Make every one of yours count.', stats: { intelligence: 10, strength: 10, speed: 22, power: 12 } },
-  { name: 'Heavy Hitter', tag: 'Power specialist', note: 'Big swings. Train strength to stay standing.', stats: { intelligence: 12, strength: 20, speed: 8, power: 24 } },
+  { name: 'The Rookie', level: 1, tag: 'Balanced', note: 'A fair first test. No tricks, just fundamentals.', stats: { intelligence: 8, strength: 8, speed: 8, power: 8 } },
+  { name: 'Quickstep', level: 2, tag: 'Speed specialist', note: 'More attacks. Make every one of yours count.', stats: { intelligence: 10, strength: 10, speed: 22, power: 12 } },
+  { name: 'Heavy Hitter', level: 3, tag: 'Power specialist', note: 'Big swings. Train strength to stay standing.', stats: { intelligence: 12, strength: 20, speed: 8, power: 24 } },
+  { name: 'Alley Champ', level: 5, tag: 'Well rounded', note: 'A seasoned fighter with no easy opening.', stats: { intelligence: 20, strength: 24, speed: 22, power: 28 } },
+  { name: 'Iron Jaw', level: 8, tag: 'Defensive wall', note: 'High endurance and a punishing counter.', stats: { intelligence: 28, strength: 40, speed: 24, power: 36 } },
+  { name: 'The Enforcer', level: 12, tag: 'Heavyweight', note: 'Fast and dangerous. Bring a complete build.', stats: { intelligence: 40, strength: 48, speed: 42, power: 52 } },
+  { name: 'Night King', level: 18, tag: 'Arena veteran', note: 'Elite speed and power. Only a serious fighter should enter.', stats: { intelligence: 60, strength: 68, speed: 62, power: 72 } },
+  { name: 'Dojo Legend', level: 25, tag: 'Final challenge', note: 'The arena’s toughest test. Train hard before challenging.', stats: { intelligence: 90, strength: 96, speed: 86, power: 102 } },
 ];
 export const hp = (xp = 0) => 90 + 2 * (level(xp) - 1);
 export type Turn = { actor: 'you' | 'rival'; damage: number; critical: boolean; dodged: boolean; yourHp: number; rivalHp: number };
 export type Battle = { turns: Turn[]; winner: 'you' | 'rival' | 'draw'; xp: number; yourMaxHp: number; rivalMaxHp: number };
-export function battle(you: Stats, rival: Stats, random: () => number = Math.random, yourXp = 0, rivalXp = 0): Battle {
-  const yourMaxHp = hp(yourXp), rivalMaxHp = hp(rivalXp);
+export function battle(you: Stats, rival: Stats, random: () => number = Math.random, yourXp = 0, rivalLevel = 1): Battle {
+  const yourMaxHp = hp(yourXp), rivalMaxHp = hp((rivalLevel - 1) * 100);
   let yourHp = yourMaxHp, rivalHp = rivalMaxHp;
   const turns: Turn[] = [];
   const yourDelay = 1 / Math.max(1, you.speed), rivalDelay = 1 / Math.max(1, rival.speed);
@@ -88,12 +98,13 @@ export function battle(you: Stats, rival: Stats, random: () => number = Math.ran
   }
   const yours = yourHp / yourMaxHp, theirs = rivalHp / rivalMaxHp;
   const winner = yours === theirs ? 'draw' : yours > theirs ? 'you' : 'rival';
-  return { turns, winner, yourMaxHp, rivalMaxHp, xp: Math.round((winner === 'you' ? 20 : winner === 'draw' ? 15 : 10) * xpMultiplier(you.intelligence)) };
+  const baseXp = winner === 'you' ? 20 + 10 * Math.max(0, rivalLevel - 1) : winner === 'draw' ? 15 : 10;
+  return { turns, winner, yourMaxHp, rivalMaxHp, xp: Math.round(baseXp * xpMultiplier(you.intelligence)) };
 }
-export function enterBattle(state: TrainingState, rival: Stats, now = Date.now(), random: () => number = Math.random) {
+export function enterBattle(state: TrainingState, rival: Stats, now = Date.now(), random: () => number = Math.random, rivalLevel = 1) {
   state = regenerate(state, now);
   if (state.t < FIGHT_T) return { state, result: null };
-  const result = battle(state.stats, rival, random, state.xp);
+  const result = battle(state.stats, rival, random, state.xp, rivalLevel);
   return { state: { ...state, t: state.t - FIGHT_T, xp: state.xp + result.xp }, result };
 }
 

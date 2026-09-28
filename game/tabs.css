@@ -1,0 +1,37 @@
+.tabs {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs button { flex: 0 0 auto; }
+
+.preview-clock > h2,
+.roadmap > h2 {
+  margin: 8px 0 10px;
+  font-size: 28px;
+  letter-spacing: -.7px;
+}
+
+.preview-clock > .energy { margin-top: 18px; }
+.roadmap > .pvp-roadmap { margin-top: 22px; }
+
+.pvp-roadmap {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #485a3d;
+  border-radius: 8px;
+  background: #202b21;
+}
+
+.pvp-roadmap h3 { margin-bottom: 8px; font-size: 20px; }
+.pvp-roadmap p { color: #b9c8b7; font-size: 14px; line-height: 1.6; }
+.pvp-roadmap-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 12px; }
+.pvp-roadmap-meta span { padding: 6px 8px; border: 1px solid #526348; border-radius: 4px; color: #d4e3c7; font-size: 11px; }
+.pvp-roadmap small { color: #a3b3a8; }
+
+@media (max-width: 680px) {
+  .dojo .tabs { justify-content: flex-start; gap: 18px; }
+  .dojo .tabs button { font-size: 13px; white-space: nowrap; }
+}

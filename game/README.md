@@ -24,7 +24,7 @@ Browser tests require the SDK's Playwright dependency and its Chromium install. 
 
 Start with 100 T; cap is always 100. Standard recovery is +5 T per 15 minutes (0 to 100 in 5 hours). RF Supporter recovery is +5 T per 10 minutes (3h20m). No daily reset, no excess banking and no instant refill from membership. At full T, the recharge clock rests. Switching tiers retains the fraction of the current recharge tick, after settling time at the previous rate. Backward device-clock movement does not grant energy.
 
-The RF Supporter tab includes a labelled preview clock (+15 minutes or +24 hours) to test regeneration and expiry. All time is device time plus the demo offset, including membership expiry.
+The Preview Clock tab offers +15 minutes or +24 hours to test regeneration and expiry. RF Supporter contains the simulated membership options; Roadmap previews future player duels. All time is device time plus the demo offset, including membership expiry.
 
 ## Training and intelligence
 
@@ -52,7 +52,7 @@ These formulas follow the progression text supplied by the owner. No begging, ca
 
 ## Combat
 
-Each fight costs 10 T and awards XP once. Opponents are three fixed computer builds, not other owners. Health resets every fight; no stat loss or RF payouts.
+Each fight costs 10 T and awards XP once. The arena has eight fixed computer rivals from level 1 to level 25; these are not other owners. Rival stats and HP rise by tier. Health resets every fight; no stat loss or RF payouts.
 
 - Health = 90 + 2 * (level - 1). STR has no effect on health. Practice rivals are level 1 (90 HP). Battle health is fixed at entry; a level earned during a fight increases health for the next fight.
 - Attacks are scheduled at intervals of 1 / speed; ties are random. Twice the speed schedules twice the attacks over equal elapsed combat time.
@@ -60,19 +60,21 @@ Each fight costs 10 T and awards XP once. Opponents are three fixed computer bui
 - Damage = max(1, round((6 + power * 1.2 + strength * 0.25 - defender strength * 0.3) * uniform(0.9,1.1) * critical multiplier)).
 - Critical multiplier = 1.6; otherwise 1.
 - Knockout wins. Limit 100 attacks; at the limit, larger remaining-health percentage wins, ties draw.
-- Base XP = 20 win / 10 loss / 15 draw; multiply by INT bonus and round to whole XP.
+- Win XP = 20 base + 10 per opponent level above level 1 (20 XP for Rookie, 60 for Alley Champ, 260 for Dojo Legend). Loss = 10 base; draw = 15 base. Multiply by INT bonus and round to whole XP.
 - Level = 1 + floor(total XP / 100).
 
 Math.random is appropriate here only because fights are simulated and have no monetary payout.
 
 ## Simulated RF membership — proposed prices
 
-Start with 1,000 mock RF, entirely separate from the SDK ledger and actual wallet.
-- Stake: lock 100 mock RF; supporter rate lasts while locked. Unstake returns the full 100 and restores standard rate. No yield, slashing, lock duration or transaction fee.
-- Burn: consume 25 mock RF for 24 hours; no return or auto-renewal. Expiry automatically restores standard recovery.
-- Active options cannot stack. Unstake before switching from stake to burn. Burn users must wait for expiry.
+Start with 10,000 mock RF, entirely separate from the SDK ledger and actual wallet.
+- One-day supporter pass: consume 620 mock RF for 24 hours (no return or auto-renewal).
+- Monthly supporter pass: consume 3,100 mock RF for 30 days (no return or auto-renewal). This is about five daily passes' value and includes a duration discount versus five separate daily purchases.
+- The RF amounts are rounded estimates based on an observed RF/USD quote. A future live checkout must quote a fresh amount at purchase time and show quote expiry/slippage before confirmation.
+- Refundable character deposit proposal: 1,000 mock RF returned when the character is deleted/closed. It is a separate anti-spam concept; character creation/deletion is not implemented.
+- Only one supporter pass is active at once. Pass time expires automatically, restoring standard recovery.
 - Both options use an explicit in-game simulation confirmation; no wallet requests or real token changes occur.
-- Costs/duration are placeholders for playtesting, not approved token economics.
+- USD targets and rounded amounts are placeholders for playtesting, not approved token economics. Any real payment routing to a developer wallet and any RF burn split remain undecided.
 
 Real staking/burning would require a supported SDK capability plus reviewed contracts and verified receipts. None is included or claimed. T, stats and XP have no redemption value.
 
@@ -80,7 +82,7 @@ Real staking/burning would require a supported SDK capability plus reviewed cont
 
 The current SDK requires a chance-game definition even when a game does not use chance-game purchases. game.json contains an unused compatibility definition: 1 simulated RF ticket, deterministic 1 simulated RF reference reward. No game UI buys, plays or redeems it. client.read is used only to initialize the trusted runtime session. The local mock supporter ledger never changes the real wallet or SDK RF balance.
 
-Progress, RF mock balance, memberships and records are memory-only and reset on reload, identity change or remount. Recovery is a session demonstration, not enforced daily progression. Shared saves, anti-cheat, real player-versus-player combat, actual RF contracts and supported persistence/authentication bridge integration remain future work. No parent access, unrestricted network or storage bypass is added.
+Progress, RF mock balance, memberships and records are memory-only and reset on reload, identity change or remount. Recovery is a session demonstration, not enforced daily progression. Shared saves, anti-cheat, real player-versus-player combat, actual RF contracts and supported persistence/authentication bridge integration remain future work. Optional RF wagers for future duels are a design possibility, not a current feature or promise; matchmaking, wager caps, escrow, cancellations, dispute handling and payouts need review before implementation. No parent access, unrestricted network or storage bypass is added.
 
 Controls: touch/click, Tab and Enter/Space. Reduced-motion preference gives instant battle results, also selectable in Rules. No audio. Runtime menus pause gameplay. Desktop maximum 960x640 with scrolling; phones use a taller responsive frame.
 
@@ -90,6 +92,14 @@ Original Rare Friends character pixels are loaded through the SDK canonical spri
 
 Preview: https://frienddojo.vercel.app (public demo).
 Submission remains pending owner approval, builder contact, public source/preview and real-wallet testing. No vibeathon PR has been opened.
+
+## Vibeathon direction
+
+The prototype is being shaped for Character Spotlight and Token Activity. Character Spotlight centers the SDK-selected, ownership-verified Generations Friend: canonical Friend artwork, the fighter in each arena matchup, and the character whose training is on display. The wallet-free guest demo is only a labeled sample for exploration; the scored FriendSDK path requires the owned Friend selection and wallet gate.
+
+Token Activity is presented as two interactive mock RF spending flows: consume about 620 RF (roughly $1 at the reviewed quote) for a one-day Friend-attributed supporter pass, or about 3,100 RF (roughly $5) for a 30-day pass. Both update only the local mock balance. The submission must say actual RF activity is disabled and report mock-flow results honestly. The vibeathon rules currently say judging details for simulated Token Activity are pending, so prize eligibility for simulations is not guaranteed.
+
+Economy Potential is a reasonable supporting story rather than the main target: two consumed RF supporter passes create recurring activity with a clear service duration. A separate refundable character deposit could deter spam character creation, but it should not be conflated with spending volume or sold as a token sink. Any live version needs community-approved prices, a stated developer-wallet allocation, a deliberate burn share (if any), an abuse policy, and supported wallet/contracts with verifiable receipts before promising utility. No character creation system is included in this build.
 
 
 ## Pre-launch guest demo
