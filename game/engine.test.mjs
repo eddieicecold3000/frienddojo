@@ -33,6 +33,7 @@ test('standard and supporter refill in discrete ticks and stop at 100', () => {
   assert.equal(regenerate(after,DAY+15*MINUTE).t,95);
 });
 test('stake debits once, preserves fractional progress, and unstake returns once',()=>{
+  assert.equal(STAKE_RF,10_000);
   let s=train(initialState(0),'power',5,0);
   s=regenerate(s,7.5*MINUTE);
   assert.equal(s.charge,.5);

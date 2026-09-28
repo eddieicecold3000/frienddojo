@@ -71,7 +71,7 @@ Start with 10,000 mock RF, entirely separate from the SDK ledger and actual wall
 - One-day supporter pass: consume 620 mock RF for 24 hours (no return or auto-renewal).
 - Monthly supporter pass: consume 3,100 mock RF for 30 days (no return or auto-renewal). This is about five daily passes' value and includes a duration discount versus five separate daily purchases.
 - The RF amounts are rounded estimates based on an observed RF/USD quote. A future live checkout must quote a fresh amount at purchase time and show quote expiry/slippage before confirmation.
-- Refundable character deposit proposal: 1,000 mock RF returned when the character is deleted/closed. It is a separate anti-spam concept; character creation/deletion is not implemented.
+- Refundable character deposit proposal: 10,000 mock RF returned when the character is deleted/closed. It is a separate anti-spam concept; character creation/deletion is not implemented.
 - Only one supporter pass is active at once. Pass time expires automatically, restoring standard recovery.
 - Both options use an explicit in-game simulation confirmation; no wallet requests or real token changes occur.
 - USD targets and rounded amounts are placeholders for playtesting, not approved token economics. Any real payment routing to a developer wallet and any RF burn split remain undecided.

@@ -5,7 +5,7 @@ export const MINUTE = 60_000, DAY = 24 * 60 * MINUTE;
 // Mock RF estimates only. The live equivalent should be quoted dynamically from USD targets.
 export const MONTHLY_SUPPORTER_USD = 5, DAILY_SUPPORTER_USD = 1;
 export const MONTHLY_SUPPORTER_RF_ESTIMATE = 3100, DAILY_SUPPORTER_RF_ESTIMATE = 620;
-export const CHARACTER_DEPOSIT_RF_PROPOSAL = 1000;
+export const CHARACTER_DEPOSIT_RF_PROPOSAL = 10_000;
 export const STAKE_RF = CHARACTER_DEPOSIT_RF_PROPOSAL, BURN_RF = DAILY_SUPPORTER_RF_ESTIMATE, FIGHT_T = 10;
 export type TrainingState = {
   t: number; stats: Stats; lastUpdate: number; charge: number;
